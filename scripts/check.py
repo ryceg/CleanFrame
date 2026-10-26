@@ -10,13 +10,16 @@ manifest = XML.parse(app / 'config.xml').getroot()
 ns = {'w': 'http://www.w3.org/ns/widgets', 't': 'http://tizen.org/ns/widgets'}
 identity = manifest.find('t:application', ns)
 assert identity is not None, 'Missing application identity'
-assert identity.get('package') == 'nClrkHome1', 'Keep the installed package identity stable'
-assert identity.get('id') == 'nClrkHome1.FrameHome', 'Keep the installed application ID stable'
+assert identity.get('package') == 'ix1Dqk0PzZ', 'Keep the installed package identity stable'
+assert identity.get('id') == 'ix1Dqk0PzZ.GrayFrame', 'Keep the installed application ID stable'
 assert manifest.get('version') == json.loads((root / 'package.json').read_text())['version'], 'Manifest/package versions differ'
 for tag in ['content', 'icon']:
     node = manifest.find('w:' + tag, ns)
     assert node is not None and (app / node.get('src', '')).is_file(), 'Missing ' + tag + ' file'
-assert all((app / name).is_file() for name in ['main.js', 'style.css'])
+assert all((app / name).is_file() for name in ['main.js', 'style.css', 'device.js', 'ha.js'])
+# The source tree only carries an inert HA placeholder; private builds overlay the real settings.
+assert (app / 'assets/ha-config.js').read_text().strip().endswith('window.GrayFrameHA = window.GrayFrameHA || null;'), 'ha-config.js must stay an inert placeholder'
+assert manifest.find('w:access', ns) is None, 'Remote access origins are added only by the private HA overlay'
 for reference in ['assets/wallpapers/catalog.js', 'assets/adaptive-ink.js', 'assets/font-catalog.js']:
     assert (app / reference).is_file(), 'Missing runtime catalogue: ' + reference
 for filename in ['index.html']:
@@ -41,6 +44,8 @@ for wall in walls:
     for suffix in ['study-soft', 'field-blur', 'field-frost', 'field-clear']:
         assert (app / ('assets/materials/' + wall_id + '-' + suffix + '.jpg')).is_file(), 'Missing registered material: ' + wall_id + '/' + suffix
     assert (app / ('assets/wallpapers/' + wall_id + '-panel.jpg')).is_file(), 'Missing panel backdrop: ' + wall_id
-for icon in ['stremio', 'netflix', 'disneyplus', 'youtube', 'appletv', 'primevideo', 'abciview', 'sbs', 'applemusic', 'art', 'apps', 'settings']:
+for icon in ['stremio', 'netflix', 'disneyplus', 'youtube', 'appletv', 'primevideo', 'abciview', 'sbs', 'applemusic', 'art', 'apps', 'settings',
+             'hbomax', 'spotify', 'tubi', 'dropout', 'moonlight', 'stan', 'binge', 'foxtel', 'kayo', 'paramountplus',
+             '9now', '7plus', '10play', 'internet', 'geforcenow', 'xbox']:
     assert (app / ('assets/icons/' + icon + '.svg')).is_file(), 'Missing icon: ' + icon
 print('Widget identity, version and bundled resources are valid.')

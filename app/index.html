@@ -12,6 +12,7 @@
 <body>
       <main class="stage" id="stage" tabindex="0" aria-label="TV stage, 1920 by 1080. Click it, then use the arrow keys, Enter for OK and Escape for Back.">
         <div class="scene" id="scene">
+        <div class="ha-art-layer" id="haArtLayer" aria-hidden="true"><img class="ha-art" id="haArt" alt=""><div class="ha-art-scrim"></div></div>
         <div class="bg" id="bg" aria-hidden="true">
           <img class="photo" id="photo" alt="">
           <div class="scrim"></div>
@@ -24,6 +25,7 @@
 
         <div class="home" id="home">
           <div class="caption" id="caption"></div>
+          <div class="ha-panel" id="haPanel" hidden></div>
           <nav class="utils" id="utils" aria-label="Home controls"></nav>
           <div class="util-focus-label" id="utilFocusLabel" aria-hidden="true"></div>
           <div class="app-focus-name" id="appFocusName" aria-hidden="true"></div>
@@ -86,7 +88,9 @@
         </div>
         <div class="focus-status" id="focusStatus" aria-live="polite"></div>
       </main>
+<script src="assets/ha-config.js"></script>
 <script src="device.js"></script>
+<script src="ha.js"></script>
 <script src="assets/icons/metrics.js"></script>
 <script src="assets/wallpapers/catalog.js"></script>
 <script src="assets/adaptive-ink.js"></script>

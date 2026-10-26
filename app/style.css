@@ -111,8 +111,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000}
 .mark{position:relative;display:block;flex:none}
 .mark img,.mark .mk{position:absolute;max-width:none}.mark .mk{display:block;background:currentColor;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}.mark.is-bad>*{visibility:hidden}
 .monogram{display:flex;align-items:center;justify-content:center;font-weight:600;letter-spacing:0;color:inherit}
-.monogram span{position:relative;width:1.65em;height:1.65em;display:flex;align-items:center;justify-content:center;border-radius:.4em}.monogram span::after{content:"";position:absolute;inset:0;border:2px solid currentColor;border-radius:inherit;opacity:.38}
-.native-icon img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.monogram span{position:relative;width:1.65em;height:1.65em;display:flex;align-items:center;justify-content:center;border-radius:.4em}.monogram span::after{content:"";position:absolute;top:0;right:0;bottom:0;left:0;border:2px solid currentColor;border-radius:inherit;opacity:.38}
+.native-icon img{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:contain}
 .native-icon.has-native-icon>span{visibility:hidden}
 .tile .mark{position:absolute;left:84px;top:34px;opacity:.84;transition:opacity 160ms linear,transform var(--t) var(--ease)}
 .tile .label{position:absolute;left:4px;right:4px;top:128px;text-align:center;font-size:36px;line-height:44px;letter-spacing:-.8px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.84;transition:opacity 160ms linear}
@@ -200,7 +200,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000}
 .m-tint .ph-veil{background:linear-gradient(180deg,rgba(14,12,10,.30),rgba(14,12,10,.40))}
 .m-tint .ph-plate.on-lift .ph-veil{background:linear-gradient(180deg,rgba(14,12,10,.52),rgba(14,12,10,.62))}
 .m-tint .ph-plate::after,.m-tint .mat::after{box-shadow:inset 0 1px 0 rgba(255,252,246,.30),inset 0 0 0 1px rgba(255,252,246,.12),inset 0 0 20px rgba(255,252,246,.06)}
-.m-tint .ph-plate::before,.m-tint .mat::before{content:"";position:absolute;z-index:1;inset:0;border-radius:inherit;background:radial-gradient(120% 90% at 22% 0%,rgba(255,252,246,.16),rgba(255,252,246,0) 55%);pointer-events:none}
+.m-tint .ph-plate::before,.m-tint .mat::before{content:"";position:absolute;z-index:1;top:0;right:0;bottom:0;left:0;border-radius:inherit;background:radial-gradient(120% 90% at 22% 0%,rgba(255,252,246,.16),rgba(255,252,246,0) 55%);pointer-events:none}
 .ph-list.is-compact{top:72px;height:944px;-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,0.0000) 0px,rgba(0,0,0,0.0156) 10px,rgba(0,0,0,0.0625) 20px,rgba(0,0,0,0.1406) 30px,rgba(0,0,0,0.2500) 40px,rgba(0,0,0,0.3906) 50px,rgba(0,0,0,0.5625) 60px,rgba(0,0,0,0.7656) 70px,rgba(0,0,0,1.0000) 80px,#000 856px,rgba(0,0,0,0.7656) 867px,rgba(0,0,0,0.5625) 878px,rgba(0,0,0,0.3906) 889px,rgba(0,0,0,0.2500) 900px,rgba(0,0,0,0.1406) 911px,rgba(0,0,0,0.0625) 922px,rgba(0,0,0,0.0156) 933px,rgba(0,0,0,0.0000) 944px);mask-image:linear-gradient(to bottom,rgba(0,0,0,0.0000) 0px,rgba(0,0,0,0.0156) 10px,rgba(0,0,0,0.0625) 20px,rgba(0,0,0,0.1406) 30px,rgba(0,0,0,0.2500) 40px,rgba(0,0,0,0.3906) 50px,rgba(0,0,0,0.5625) 60px,rgba(0,0,0,0.7656) 70px,rgba(0,0,0,1.0000) 80px,#000 856px,rgba(0,0,0,0.7656) 867px,rgba(0,0,0,0.5625) 878px,rgba(0,0,0,0.3906) 889px,rgba(0,0,0,0.2500) 900px,rgba(0,0,0,0.1406) 911px,rgba(0,0,0,0.0625) 922px,rgba(0,0,0,0.0156) 933px,rgba(0,0,0,0.0000) 944px)}
 .ph-list.is-compact .ph-group{transform-origin:28px 44px}
 .at-arrange #phScene>.ph-plate{border-radius:28px}
@@ -289,7 +289,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000}
 .grid-label{top:452px}
 
 /* Panel content uses an inner group so Type focus does not move the layout box. */
-.gt .panel-content,.sc .panel-content{position:absolute;inset:0;transform-origin:50% 50%;transition:transform var(--t) var(--ease)}
+.gt .panel-content,.sc .panel-content{position:absolute;top:0;right:0;bottom:0;left:0;transform-origin:50% 50%;transition:transform var(--t) var(--ease)}
 .er-name .panel-content,.eo .panel-content{display:flex;align-items:center;gap:20px;min-width:0;flex:1;height:100%;transform-origin:0 50%;transition:transform var(--t) var(--ease)}
 .er-name .er-text{min-width:0}
 .f-type .sheet .gt,.f-type .sheet .er-name,.f-type .sheet .eo,.f-type .sheet .sc{background:none;box-shadow:none;opacity:.70;transition:opacity 160ms linear,transform var(--t) var(--ease)}
@@ -420,7 +420,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000}
 .bg-dark .ph-action.is-focus,.bg-light .ph-action.is-focus{background:var(--solid);color:var(--solid-ink)}
 .bg-light .ph-list.is-compact .ph-row::before{background:rgba(29,26,22,.05)}
 .bg-dark .wall-keep,.bg-light .wall-keep{color:var(--ink)}
-.tile-content{position:absolute;inset:0;border-radius:inherit;transform-origin:50% 50%;transition:opacity 160ms linear,transform var(--t) var(--ease)}
+.tile-content{position:absolute;top:0;right:0;bottom:0;left:0;border-radius:inherit;transform-origin:50% 50%;transition:opacity 160ms linear,transform var(--t) var(--ease)}
 .f-type .plate{opacity:0}
 .f-type .tile-content{opacity:.62}
 .f-type .tile.is-focus .tile-content{opacity:1;transform:scale(1.06)}
@@ -481,7 +481,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000}
 .bg-photo.l-dock.ink-tl-dark-halo .shade{display:block!important;background:radial-gradient(ellipse 560px 200px at 188px 104px,rgba(255,252,248,.12),rgba(255,252,248,.06) 55%,rgba(255,252,248,0))!important}
 .bg-photo.ink-tr-dark-halo .ut-tr{display:block;background:radial-gradient(ellipse 900px 260px at 1500px 104px,rgba(255,252,248,.12),rgba(255,252,248,.06) 55%,rgba(255,252,248,0))!important}
 .bg-photo.l-list.ink-br-dark-halo .ut-br{display:block;background:radial-gradient(ellipse 900px 260px at 1560px 878px,rgba(255,252,248,.12),rgba(255,252,248,.06) 55%,rgba(255,252,248,0))!important}
-.appearance{position:absolute;z-index:3;inset:0;color:var(--ink);pointer-events:none}
+.appearance{position:absolute;z-index:3;top:0;right:0;bottom:0;left:0;color:var(--ink);pointer-events:none}
 .settings-back{position:absolute;left:124px;top:60px;pointer-events:auto}
 .settings-title{position:absolute;left:140px;top:132px;font-size:56px;line-height:68px;font-weight:500;letter-spacing:-1.6px}
 .appearance-rows{position:absolute;left:140px;top:244px;width:640px;pointer-events:auto}
@@ -597,3 +597,25 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000}
 .is-font-switch .home .ph-name,.is-font-switch .home .clock,.is-font-switch .home .tile .label,.is-font-switch .home .u-label,.is-font-switch .home .app-focus-name,.is-font-switch .home .util-focus-label{animation:font-in 160ms linear}
 @keyframes font-in{from{opacity:0}}
 @media(prefers-reduced-motion:reduce){.is-font-switch .home .ph-name,.is-font-switch .home .clock,.is-font-switch .home .tile .label,.is-font-switch .home .u-label,.is-font-switch .home .app-focus-name,.is-font-switch .home .util-focus-label{animation-duration:120ms}}
+
+/* Home Assistant (private builds only). Weather and the heat pump sit under the clock; Art Mode is an HA image over flat dark styling. */
+.ha-panel{position:absolute;left:140px;top:196px;z-index:3;display:flex;flex-direction:column;align-items:flex-start;max-width:1040px}
+.ha-panel[hidden]{display:none}
+.l-list .ha-panel{left:auto;right:140px;top:220px;align-items:flex-end;text-align:right;max-width:880px}
+.ha-weather{display:flex;align-items:baseline;max-width:100%;margin-bottom:12px;text-shadow:0 1px 3px rgba(0,0,0,.30)}
+.ha-temp{margin-right:16px;font-size:40px;line-height:52px;font-weight:500;letter-spacing:-1px;white-space:nowrap}
+.ha-line{min-width:0;font-size:28px;line-height:36px;font-weight:500;letter-spacing:-.2px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ha-heat{margin-left:-20px}
+.l-list .ha-heat{margin-left:0;margin-right:-26px}
+.ha-heat .u-content{display:inline-flex;align-items:center}
+.ha-heat .u-label{margin-left:12px}
+.ha-heat .ha-value{margin-left:14px;opacity:.78;font-variant-numeric:tabular-nums}
+.ha-heat.is-pending .ha-value{opacity:.6}
+.ha-note{margin-top:8px;font-size:26px;line-height:34px;font-weight:500;color:var(--warn);text-shadow:0 1px 2px rgba(0,0,0,.30)}
+.ha-note.is-quiet{color:var(--faint)}
+.ha-art-layer{display:none;position:absolute;left:0;top:0;width:1920px;height:1080px}
+.bg-art.has-art .ha-art-layer{display:block}
+.is-sheet .ha-art-layer{visibility:hidden}
+.ha-art{position:absolute;left:0;top:0;width:1920px;height:1080px;max-width:none;object-fit:cover}
+/* No pixel analysis on the TV: one static scrim must keep light ink legible over bright and dark artwork alike. */
+.ha-art-scrim{position:absolute;left:0;top:0;width:1920px;height:1080px;background:linear-gradient(to bottom,rgba(10,9,8,.72),rgba(10,9,8,.46) 34%,rgba(10,9,8,.42) 52%,rgba(10,9,8,.78))}

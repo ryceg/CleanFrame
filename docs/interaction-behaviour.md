@@ -10,6 +10,17 @@
 - A panel keeps focus within its own controls. Back closes one panel at a time.
 - Returning to the running launcher keeps the selected app or panel item. There is no auto-return timer. Held OK and Back keys act once until the key is released.
 
+## Home Assistant (private builds)
+
+GrayFrame shows Home Assistant items only when a private build carries `.local/homeassistant.json`. Without it, Home, Settings and navigation are unchanged.
+
+- Under the clock: today's weather (current temperature, forecast text, maximum and rain chance), read-only, and a Heat pump control showing On/Off, the room temperature and, when on, the setpoint.
+- Dock: Left from Art Mode (the first top-right control) focuses Heat pump. Right returns to Art Mode; Down or Back returns to the selected app.
+- List: the items sit at the top right under the clock. Up from Art Mode focuses Heat pump; Down returns to Art Mode; Left or Back returns to the selected app.
+- Focus never acts. OK sends `climate.turn_off` or `climate.turn_on`. The control shows Turning on…/Turning off… until Home Assistant answers (8 s limit); repeated OK is ignored meanwhile. A refusal, timeout or lost connection shows Home Assistant's message and the last real state; no success is simulated.
+- Background → Art Mode (offered only with HA) shows the configured HA image entity over the Dark styling with a static legibility scrim, and follows the entity's picture as it changes. If the entity is unavailable or HA is unreachable, Home shows the Dark background. There are no pre-rendered materials or live blur for this image.
+- The connection uses the HA WebSocket API, reconnects with backoff and closes while the launcher is hidden.
+
 ## Settings and appearance
 
 Settings opens a grouped overview: Background, Layout, Typography, Focus, Apps on Home and Samsung. OK opens a group. Appearance groups use a two-pane screen with visible choices on the left and the committed Home preview on the right.

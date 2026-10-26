@@ -16,5 +16,77 @@
     "source": "https://github.com/simple-icons/simple-icons/blob/develop/icons/tubi.svg",
     "licence": "CC0-1.0",
     "note": "Shape unchanged; white fill for launcher."
+  },
+  {
+    "icon": "foxtel",
+    "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/icons/foxtel.svg",
+    "licence": "CC0-1.0",
+    "note": "Shape unchanged; white fill for launcher."
+  },
+  {
+    "icon": "paramountplus",
+    "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/icons/paramountplus.svg",
+    "licence": "CC0-1.0",
+    "note": "Shape unchanged; white fill for launcher."
+  },
+  {
+    "icon": "geforcenow",
+    "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/90646e4bf7f3b89df6c37e65baf3e7bc759a517c/icons/nvidia.svg",
+    "licence": "CC0-1.0",
+    "note": "NVIDIA mark for GeForce NOW; shape unchanged; white fill for launcher."
+  },
+  {
+    "icon": "dropout",
+    "source": "https://raw.githubusercontent.com/elax46/custom-brand-icons/a53cabf49bf439023a8f33585af30d783bffe51b/icon-svg/dropout.svg",
+    "licence": "MIT",
+    "note": "Shape unchanged; recoloured white (source fill #44739e)."
+  },
+  {
+    "icon": "moonlight",
+    "source": "https://raw.githubusercontent.com/elax46/custom-brand-icons/a53cabf49bf439023a8f33585af30d783bffe51b/icon-svg/moonlight.svg",
+    "licence": "MIT",
+    "note": "Shape unchanged; recoloured white (source fill #44739e)."
+  },
+  {
+    "icon": "stan",
+    "source": "https://raw.githubusercontent.com/elax46/custom-brand-icons/a53cabf49bf439023a8f33585af30d783bffe51b/icon-svg/stan.svg",
+    "licence": "MIT",
+    "note": "Shape unchanged; recoloured white (source fill #44739e)."
+  },
+  {
+    "icon": "binge",
+    "source": "https://raw.githubusercontent.com/elax46/custom-brand-icons/a53cabf49bf439023a8f33585af30d783bffe51b/icon-svg/binge.svg",
+    "licence": "MIT",
+    "note": "Shape unchanged; recoloured white (source fill #44739e)."
+  },
+  {
+    "icon": "kayo",
+    "source": "https://raw.githubusercontent.com/elax46/custom-brand-icons/a53cabf49bf439023a8f33585af30d783bffe51b/icon-svg/kayo.svg",
+    "licence": "MIT",
+    "note": "Shape unchanged; recoloured white (source fill #44739e)."
+  },
+  {
+    "icon": "9now",
+    "source": "https://raw.githubusercontent.com/elax46/custom-brand-icons/a53cabf49bf439023a8f33585af30d783bffe51b/icon-svg/9-now.svg",
+    "licence": "MIT",
+    "note": "Shape unchanged; recoloured white (source fill #44739e)."
+  },
+  {
+    "icon": "7plus",
+    "source": "https://raw.githubusercontent.com/elax46/custom-brand-icons/a53cabf49bf439023a8f33585af30d783bffe51b/icon-svg/7plus-tv.svg",
+    "licence": "MIT",
+    "note": "Shape unchanged; recoloured white (source fill #44739e)."
+  },
+  {
+    "icon": "10play",
+    "source": "https://raw.githubusercontent.com/elax46/custom-brand-icons/a53cabf49bf439023a8f33585af30d783bffe51b/icon-svg/10-play.svg",
+    "licence": "MIT",
+    "note": "Shape unchanged; recoloured white (source fill #44739e)."
+  },
+  {
+    "icon": "xbox",
+    "source": "https://raw.githubusercontent.com/elax46/custom-brand-icons/a53cabf49bf439023a8f33585af30d783bffe51b/icon-svg/xbox.svg",
+    "licence": "MIT",
+    "note": "Shape unchanged; recoloured white (source fill #44739e)."
   }
 ]

@@ -25,6 +25,12 @@
     { id: 'applemusic', name: 'Apple Music', mark: true, appId: 'org.tizen.apple.apple-music' }
   ];
   var PRIMARY = PRIMARY_APPS.map(function (a) { return a.id; }), APPS = PRIMARY_APPS.slice(), ALPHA = [];
+  // Bundled marks for installed apps outside PRIMARY; device.js maps app IDs to these.
+  var EXTRA_MARKS = ['hbomax', 'spotify', 'tubi', 'dropout', 'moonlight', 'stan', 'binge', 'foxtel', 'kayo', 'paramountplus',
+    '9now', '7plus', '10play', 'internet', 'geforcenow', 'xbox'];
+  // First-run Home order. Strings are PRIMARY ids; objects are installed apps outside PRIMARY.
+  var DEFAULT_HOME = ['youtube', 'abciview', 'sbs', 'appletv', { id: '5b8c3eb16b.BeamCTVDev', name: 'HBO Max', brand: 'hbomax' },
+    'disneyplus', 'primevideo', 'netflix', { id: 'tCyZuSsCVw.Britbox', name: 'BritBox by BBC' }];
   var WALLS = window.CleanFrameWallpapers || [{ id: 'misty', name: 'Misty coast', tone: 'light', ut: { tr: 'mist', br: 'mist' }, frostVeil: .20 }];
   var ADAPTIVE_INK = window.CleanFrameAdaptiveInk || {};
   WALLS.forEach(function (w) { w.ut = w.ut || { tr: 'light', br: 'light' }; w.frostVeil = w.frostVeil || .12; });
@@ -45,9 +51,9 @@
   };
   var PRIVATE_FONTS = window.CleanFramePrivateFontIDs || [], fontMetrics = {}, unavailableFonts = {}, widthCache = {}, fontsReady = false;
   var LOOK_KEYS = ['bg', 'layout', 'apps', 'font', 'controls', 'focus', 'material'];
-  var LOOK_VALUES = { bg: ['dark', 'light', 'photo'], layout: ['list', 'dock'], apps: ['icons', 'both', 'text'], font: Object.keys(FONTS).filter(function (id) { return id === 'manrope' || PRIVATE_FONTS.indexOf(id) >= 0; }), controls: ['icons', 'both', 'text'], focus: ['type', 'glass'], material: ['soft', 'frost', 'tint'] };
+  var LOOK_VALUES = { bg: ['dark', 'light', 'photo', 'art'], layout: ['list', 'dock'], apps: ['icons', 'both', 'text'], font: Object.keys(FONTS).filter(function (id) { return id === 'manrope' || PRIVATE_FONTS.indexOf(id) >= 0; }), controls: ['icons', 'both', 'text'], focus: ['type', 'glass'], material: ['soft', 'frost', 'tint'] };
   var LOOK_NAMES = { bg: 'Background', layout: 'Layout', apps: 'Apps', font: 'Font', controls: 'Home controls', focus: 'Focus', material: 'Material' };
-  var VALUE_NAMES = { dark: 'Dark', light: 'Light', photo: 'Photo', list: 'List', dock: 'Dock', type: 'Type', glass: 'Glass', soft: 'Soft', frost: 'Frost', tint: 'Clear tint', icons: 'Icons', both: 'Icons and text', text: 'Text' };
+  var VALUE_NAMES = { dark: 'Dark', light: 'Light', photo: 'Photo', art: 'Art Mode', list: 'List', dock: 'Dock', type: 'Type', glass: 'Glass', soft: 'Soft', frost: 'Frost', tint: 'Clear tint', icons: 'Icons', both: 'Icons and text', text: 'Text' };
   var UTIL = { art: ['Art Mode', 'art'], apps: ['All apps', 'apps'], arrange: ['Arrange', 'arrange'], settings: ['Settings', 'settings'] };
   var MSG = {
     leave: { title: 'Leave Home?', line: 'Open Samsung Home?', note: '', actions: [['stay', 'Stay'], ['samsung', 'Samsung Home']] }
@@ -67,6 +73,7 @@
     down: '<path d="m5 8.5 7 7 7-7"/>',
     updown: '<path d="m7.5 9.5 4.5-4.5 4.5 4.5M7.5 14.5l4.5 4.5 4.5-4.5"/>',
     tv: '<rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M8.5 20h7"/>',
+    heat: '<rect x="3" y="5" width="18" height="8.5" rx="2"/><path d="M6.5 10.5h11M8 16.5c.8.8.8 1.7 0 2.5M12 16.5c.8.8.8 1.7 0 2.5M16 16.5c.8.8.8 1.7 0 2.5"/>',
     warn: '<path d="M12 4 2.8 19.5h18.4Z"/><path d="M12 10v4.5M12 17.3v.1"/>'
   };
 
@@ -331,14 +338,18 @@
     var legacyList = s.theme === 'list', h = [], recent = [], records = Array.isArray(s.appRecords) ? s.appRecords : [];
     records.slice(0, 256).forEach(function (a) {
       if (!a || !safeId(a.id) || !safeId(a.appId) || typeof a.name !== 'string' || !a.name.trim() || app(a.id)) return;
-      APPS.push({ id: a.id, appId: a.appId, name: a.name.slice(0, 160), brand: ['hbomax', 'spotify', 'tubi'].indexOf(a.brand) >= 0 ? a.brand : '', mark: ['hbomax', 'spotify', 'tubi'].indexOf(a.brand) >= 0, icon: safeIcon(a.icon) });
+      APPS.push({ id: a.id, appId: a.appId, name: a.name.slice(0, 160), brand: EXTRA_MARKS.indexOf(a.brand) >= 0 ? a.brand : '', mark: EXTRA_MARKS.indexOf(a.brand) >= 0, icon: safeIcon(a.icon) });
     });
     (Array.isArray(s.home) ? s.home : Array.isArray(s.dock) ? s.dock : []).forEach(function (id) {
       if (!safeId(id) || h.indexOf(id) >= 0 || h.length >= CAP) return;
       if (!app(id) && id.indexOf('.') > 0) APPS.push({ id: id, appId: id, name: id.split('.').pop(), mark: false });
       if (app(id)) h.push(id);
     });
-    if (!h.length) h = PRIMARY.slice();
+    if (!h.length) h = DEFAULT_HOME.map(function (d) {
+      if (typeof d === 'string') return d;
+      if (!app(d.id)) APPS.push({ id: d.id, appId: d.id, name: d.name, brand: d.brand || '', mark: !!d.brand, icon: '' });
+      return d.id;
+    });
     (Array.isArray(s.recent) ? s.recent : []).forEach(function (id) { if (safeId(id) && app(id) && h.indexOf(id) < 0 && recent.indexOf(id) < 0 && recent.length < 5) recent.push(id); });
     return {
       bg: pick(modern.bg, LOOK_VALUES.bg, legacyList ? 'dark' : 'photo'), layout: pick(modern.layout, LOOK_VALUES.layout, legacyList ? 'list' : 'dock'),
@@ -535,8 +546,15 @@
     key: function (t, k) {
       var f = t.f, h = S.c.home, U = utils(), x = axes(), i = ensureSel();
       if (S.c.layout === 'list') { listHomeKey(t, k, i, U); return; }
+      if (f.zone === 'ha') {
+        if (k === 'ok') haHeat();
+        else if (k === 'right') { f.zone = 'util'; f.u = 0; S.lastUtil = 0; }
+        else if (k === 'down' || k === 'back') f.zone = 'apps';
+        return;
+      }
       if (f.zone === 'util') {
         f.u = clamp(f.u, 0, U.length - 1);
+        if (k === 'left' && f.u === 0 && haFocusable()) { f.zone = 'ha'; return; }
         if (k === x.prev && f.u > 0) f.u--;
         else if (k === x.next && f.u < U.length - 1) f.u++;
         else if (k === x.inn || k === 'back') f.zone = 'apps';
@@ -552,8 +570,10 @@
       else if (k === x.next && i < h.length - 1) setSel(h[i + 1]);
       else if (k === 'ok') launch(S.sel);
     },
+    norm: function (t) { if (t.f.zone === 'ha' && !haFocusable()) t.f.zone = 'apps'; },
     point: function (t, z, i) {
       if (z === 'util') { t.f.zone = 'util'; t.f.u = i; S.lastUtil = i; }
+      else if (z === 'ha') { if (haFocusable()) t.f.zone = 'ha'; else return; }
       else if (z === 'app') { t.f.zone = 'apps'; setSel(S.c.home[i]); }
       else if (z === 'empty') t.f.zone = 'apps';
       else return;
@@ -562,8 +582,15 @@
   };
   function listHomeKey(t, k, i, U) {
     var f = t.f, h = S.c.home;
+    if (f.zone === 'ha') {
+      if (k === 'ok') haHeat();
+      else if (k === 'down') { f.zone = 'util'; f.u = 0; S.lastUtil = 0; }
+      else if (k === 'left' || k === 'back') f.zone = 'apps';
+      return;
+    }
     if (f.zone === 'util') {
       f.u = clamp(f.u, 0, U.length - 1);
+      if (k === 'up' && f.u === 0 && haFocusable()) { f.zone = 'ha'; return; }
       if (k === 'up' && f.u > 0) f.u--;
       else if (k === 'down' && f.u < U.length - 1) f.u++;
       else if (k === 'left' || k === 'back') f.zone = 'apps';
@@ -850,7 +877,7 @@
     var flat = S.c.bg !== 'photo', inactive = !materialApplies();
     function options(axis, values, disabled) { return values.map(function (value) { return choice(axis, value, disabled); }); }
     if (t.group === 'background') return [
-      { id: 'bg', title: 'Background type', items: options('bg', ['photo', 'light', 'dark']) },
+      { id: 'bg', title: 'Background type', items: options('bg', ['photo', 'light', 'dark'].concat(HA.configured ? ['art'] : [])) },
       { id: 'wall', title: 'Wallpaper', items: [{ action: 'background.wallpaper', label: wall(S.c.wall).name, thumbnail: true, disabled: flat }] },
       { id: 'rotation', title: 'Rotation', items: [{ action: 'background.rotation', label: mode().name, disabled: flat }], reason: flat ? 'Choose Photo to use wallpaper and rotation.' : '' }
     ];
@@ -1018,7 +1045,8 @@
   function render() {
     var t = top(), sheet = !!V[t.id].sheet, shown = wall(S.shown ? S.shown.wall : S.c.wall), palette = ADAPTIVE_INK[shown.id];
     var adaptive = applyAdaptiveInk(palette), tr = adaptive && palette.tr ? palette.tr.pol : shown.ut.tr, br = adaptive && palette.br ? palette.br.pol : shown.ut.br;
-    stage.className = 'stage bg-' + S.c.bg + ' l-' + S.c.layout + ' v-' + S.variant + ' m-' + (materialApplies() ? S.c.material : 'none') + ' f-' + S.c.focus + ' a-' + S.c.apps + ' u-' + S.c.controls + ' g-' + S.geom + ' tone-' + shown.tone + ' tr-' + tr + ' br-' + br + wallClasses(shown) + inkRungClasses(palette, adaptive) + ' at-' + t.id + ' font-' + homeFont() + (homeFont() !== 'manrope' ? ' font-custom' : '') + (S.fontSwitch ? ' is-font-switch' : '') + (adaptive ? ' has-adaptive-ink adaptive-tl-' + palette.tl.pol : '') + (!adaptive && shown.clockInk ? ' has-clock-ink' : '') + (!adaptive && shown.dockClockInk ? ' has-dock-clock-ink' : '') + (registeredMaterial(shown.id) ? ' registered-material' : '') + (sheet ? ' is-sheet' : '') + (S.reflow ? ' is-reflow' : '');
+    updateArt();
+    stage.className = 'stage bg-' + (S.c.bg === 'art' ? 'dark bg-art' + (artReady ? ' has-art' : '') : S.c.bg) + ' l-' + S.c.layout + ' v-' + S.variant + ' m-' + (materialApplies() ? S.c.material : 'none') + ' f-' + S.c.focus + ' a-' + S.c.apps + ' u-' + S.c.controls + ' g-' + S.geom + ' tone-' + shown.tone + ' tr-' + tr + ' br-' + br + wallClasses(shown) + inkRungClasses(palette, adaptive) + ' at-' + t.id + ' font-' + homeFont() + (homeFont() !== 'manrope' ? ' font-custom' : '') + (S.fontSwitch ? ' is-font-switch' : '') + (adaptive ? ' has-adaptive-ink adaptive-tl-' + palette.tl.pol : '') + (!adaptive && shown.clockInk ? ' has-clock-ink' : '') + (!adaptive && shown.dockClockInk ? ' has-dock-clock-ink' : '') + (registeredMaterial(shown.id) ? ' registered-material' : '') + (sheet ? ' is-sheet' : '') + (S.reflow ? ' is-reflow' : '');
     if (!adaptive && shown.clockInk) stage.style.setProperty('--clock-ink', shown.clockInk);
     else stage.style.removeProperty('--clock-ink');
     if (!adaptive && shown.dockClockInk) stage.style.setProperty('--dock-clock-ink', shown.dockClockInk);
@@ -1049,6 +1077,7 @@
   function renderHome(t) {
     var hs = homeState(t);
     renderCaption(t, hs);
+    renderHA(hs);
     renderUtils(hs);
     if (S.c.layout === 'list') renderList(hs);
     else { photoMode = null; renderDock(hs); }
@@ -1068,6 +1097,63 @@
     var html = '<span class="clock">' + clockHtml() + '</span>';
     if (S.c.apps !== 'icons' && hs.items[hs.i] && (S.c.layout === 'list' ? photoLabel(hs.items[hs.i].id, false).size < 88 || photoLabel(hs.items[hs.i].id, false).ellipsis : hs.zone === 'apps' && reducedDockLabel(hs.items[hs.i].id))) html += '<span class="cap-line full-name">' + esc(app(hs.items[hs.i].id).name) + '</span>';
     setHTML(caption, html);
+  }
+
+  /* ---------- Home Assistant ---------- */
+  var HA = window.FrameHA || { configured: false }, haPanel = $('haPanel'), haArtImg = $('haArt');
+  var haPending = null, haNote = null, artReady = false, artUrl = '', artLoading = '';
+  function haNum(v) { var n = parseFloat(v); return isNaN(n) ? null : n; }
+  function haDeg(v, half) { var n = haNum(v), r; if (n === null) return ''; r = half ? Math.round(n * 2) / 2 : Math.round(n); return (r % 1 ? r.toFixed(1) : String(r)) + '°'; }
+  function haLive(s) { return !!s && s.state !== 'unavailable' && s.state !== 'unknown' && s.state !== null; }
+  function haFocusable() { return HA.configured && !!HA.state(HA.entities.heat); }
+  function weatherText() {
+    var E = HA.entities, w = HA.state(E.weather), max = HA.state(E.max), text = HA.state(E.text), rain = HA.state(E.rain), parts = [];
+    if (!haLive(w)) return null;
+    parts.push(haLive(text) ? text.state : String(w.state).replace(/-/g, ' ').replace(/^./, function (c) { return c.toUpperCase(); }));
+    if (haLive(max) && haDeg(max.state)) parts.push('max ' + haDeg(max.state));
+    if (haLive(rain) && haNum(rain.state) !== null) parts.push(Math.round(haNum(rain.state)) + '% rain');
+    return { temp: haDeg(w.attributes.temperature), line: parts.join(' · ') };
+  }
+  function heatLabel(s) {
+    var on = s.state !== 'off', a = s.attributes, now = haDeg(a.current_temperature, true), set = haDeg(a.temperature, true);
+    if (haPending) return haPending === 'on' ? 'Turning on…' : 'Turning off…';
+    if (!haLive(s)) return 'Unavailable';
+    return (on ? 'On' : 'Off') + (now ? ' · ' + now : '') + (on && set ? ' → ' + set : '');
+  }
+  function renderHA(hs) {
+    var w, s, html = '', status;
+    if (!HA.configured) { haPanel.hidden = true; return; }
+    haPanel.hidden = false;
+    w = weatherText(); s = HA.state(HA.entities.heat); status = HA.status();
+    if (w) html += '<div class="ha-weather"><span class="ha-temp">' + esc(w.temp) + '</span><span class="ha-line">' + esc(w.line) + '</span></div>';
+    if (s) html += '<button type="button" tabindex="-1" class="u ha-heat' + (hs.zone === 'ha' ? ' is-focus' : '') + (s.state !== 'off' && haLive(s) ? ' is-on' : '') + (haPending ? ' is-pending' : '')
+      + '" data-z="ha" data-i="0" data-action="ha.heat" aria-label="Heat pump, ' + esc(heatLabel(s)) + '"><span class="u-content">' + icon('heat')
+      + '<span class="u-label">Heat pump</span><span class="ha-value">' + esc(heatLabel(s)) + '</span></span></button>';
+    if (haNote) html += '<div class="ha-note">' + esc(haNote) + '</div>';
+    else if (!w && !s) html += '<div class="ha-note is-quiet">' + (status === 'auth' ? 'Home Assistant rejected the token.' : status === 'online' ? 'Home Assistant items are unavailable.' : 'Connecting to Home Assistant…') + '</div>';
+    setHTML(haPanel, html);
+  }
+  function haHeat() {
+    var s = HA.state(HA.entities.heat), on;
+    if (haPending) return;
+    if (!haLive(s)) { haNote = 'The heat pump is unavailable.'; return; }
+    on = s.state !== 'off';
+    haPending = on ? 'off' : 'on'; haNote = null;
+    HA.call('climate', on ? 'turn_off' : 'turn_on', HA.entities.heat, function (err) {
+      haPending = null;
+      if (err) haNote = err.message;
+      render();
+    });
+  }
+  /* Art Mode background: the image entity's rotating proxy URL, preloaded so a failed or slow image never blanks Home. */
+  function updateArt() {
+    var url = HA.configured && S.c.bg === 'art' ? HA.picture(HA.entities.art) : '', im;
+    if (!url) { artLoading = ''; if (artReady || artUrl) { artReady = false; artUrl = ''; haArtImg.removeAttribute('src'); } return; }
+    if (url === artUrl || url === artLoading) return;
+    artLoading = url; im = new Image();
+    im.onload = function () { if (artLoading !== url) return; artLoading = ''; artUrl = url; haArtImg.src = url; artReady = true; render(); };
+    im.onerror = function () { if (artLoading !== url) return; artLoading = ''; if (!artUrl) { artReady = false; render(); } };
+    im.src = url;
   }
 
   function utilBtn(z, i, action, inner, extra, name) {
@@ -1205,7 +1291,7 @@
     var items = hs.items, n = items.length, empty = hs.mode !== 'arrange' && !n, g = dockGeom(empty ? -1 : n);
     var anchor = clamp(hs.i, 0, Math.max(0, n - 1)), off = empty ? 0 : dockOffset(n, anchor, g);
     var full = hs.arr ? live(hs.arr.slots).length >= CAP : false, ns = hs.arr ? hs.arr.slots.length : n;
-    var tileFocus = hs.zone === 'apps' || hs.zone === 'tiles', tileSel = hs.zone === 'util' || hs.zone === 'act' || hs.zone === 'ctl' || hs.zone === 'preview';
+    var tileFocus = hs.zone === 'apps' || hs.zone === 'tiles', tileSel = hs.zone === 'util' || hs.zone === 'ha' || hs.zone === 'act' || hs.zone === 'ctl' || hs.zone === 'preview';
     var focusItem = items[anchor], s, ax, label, width;
 
     dock.className = 'dock' + (empty ? ' is-empty' : '');
@@ -1307,7 +1393,7 @@
   function renderList(hs) {
     var items = hs.items, n = items.length, compact = hs.mode === 'arrange', pitch = compact ? PH_COMPACT_PITCH : PH_PITCH;
     var anchor = clamp(hs.i, 0, Math.max(0, n - 1)), first, off, width, slot, y, s, label, aw, plateState;
-    var rowFocus = hs.zone === 'apps' || hs.zone === 'tiles', remembered = hs.zone === 'util' || hs.zone === 'act' || hs.zone === 'ctl' || hs.zone === 'preview';
+    var rowFocus = hs.zone === 'apps' || hs.zone === 'tiles', remembered = hs.zone === 'util' || hs.zone === 'ha' || hs.zone === 'act' || hs.zone === 'ctl' || hs.zone === 'preview';
     photoModeTransition(compact);
     if (compact) {
       first = clamp(scroll.photoArrange, anchor - 7, anchor - 1);
@@ -1860,6 +1946,7 @@
     out.wallpaperPicker = t.id === 'wallpaper' ? { candidate: WALLS[t.i].id, applied: S.c.wall, shown: S.wallShown, pending: t.previewDue || S.wallPending,
       queuedApplying: !!t.applyPending, applyPending: t.applyPending, failed: t.failedId, zone: t.f.zone, top: t.top, visible: WALL_VISIBLE, backdrop: IMG.bg.src } : null;
     out.undo = S.undo.map(function (u) { return u.label; }); out.storageOk = storageOk;
+    out.ha = HA.configured ? { status: HA.status(), pending: haPending, note: haNote, art: artReady ? artUrl : '' } : null;
     return JSON.parse(JSON.stringify(out));
   };
   QA.where = function () {
@@ -1879,4 +1966,5 @@
   initialise();
   setLook({}, { transient: true, startup: true });
   norm(); render(); fit(); focusStage(); updateClock(); syncRotation();
+  if (HA.configured) { HA.on(function () { updateArt(); norm(); render(); }); HA.start(); }
 })();

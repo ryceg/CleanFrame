@@ -11,11 +11,15 @@
   var STREAMING = ['as6cYRgkPy.Binge', '73iTZRTc34.Stan', '5b8c3eb16b.BeamCTVDev',
     'KaLitts8bq.tenplaySamsungTizen', 'eYuOiOLYQX.KayoSports', 'Ne2ZsPWdKl.9NOW',
     '3KA0pm7a7V.TubiTV', 'rJeHak5zRg.Spotify', 'icp4AvUPiA.7plus'];
-  var CONSUMER_SYSTEM = ['org.tizen.browser', 'com.microsoft.copilot'];
-  var EXTRA_BRANDS = {'rJeHak5zRg.Spotify': 'spotify', '5b8c3eb16b.BeamCTVDev': 'hbomax', '3KA0pm7a7V.TubiTV': 'tubi'};
+  var CONSUMER_SYSTEM = ['org.tizen.browser', 'com.microsoft.copilot', 'com.samsung.tv.tvPlusDeeplinker'];
+  var EXTRA_BRANDS = {'rJeHak5zRg.Spotify': 'spotify', '5b8c3eb16b.BeamCTVDev': 'hbomax', '3KA0pm7a7V.TubiTV': 'tubi',
+    'MjdLQbVh6K.Dropout': 'dropout', 'MoonLightS.MoonlightWasm': 'moonlight', '73iTZRTc34.Stan': 'stan', 'as6cYRgkPy.Binge': 'binge',
+    'AtbFvatetY.FoxtelTizenApp': 'foxtel', 'eYuOiOLYQX.KayoSports': 'kayo', 'rJyOSqC6Up.PPlusIntl': 'paramountplus',
+    'Ne2ZsPWdKl.9NOW': '9now', 'icp4AvUPiA.7plus': '7plus', 'KaLitts8bq.tenplaySamsungTizen': '10play',
+    'org.tizen.browser': 'internet', 'w0wZu3xkQq.GeForceNOW': 'geforcenow', 'GHI3a0zMSx.XboxGamePass': 'xbox'};
   var INTERNAL = ['adplatform.ADPlayer', 'WykOS4t4F0.cmsWebApp', '25emanual3.emanual',
     'ZODRT12q2l.WebAccountExtension', 'ByJlgt0XeD.CastSettingsApp', 'tv6pbVMQFF.PrivacyChoices'];
-  var SELF = 'nClrkHome1.FrameHome';
+  var SELF = 'ix1Dqk0PzZ.GrayFrame';
   function api() { return window.tizen && window.tizen.application; }
   function unavailable(done) {
     done({ message: 'Open CleanFrame on the TV to use this control.', detail: 'The web preview cannot control the TV.' });

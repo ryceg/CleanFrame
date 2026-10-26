@@ -53,6 +53,16 @@ Create `.local/device.json` with:
 
 For developer access, connect the TV and Mac to the same network, enable Developer Mode in Apps → App Settings → 12345 and enter the Mac's local address. Fully restart the TV if the developer port remains closed.
 
+## Home Assistant settings (private)
+
+Create ignored `.local/homeassistant.json`:
+
+```json
+{"url": "https://homeassistant.example", "token": "LONG_LIVED_TOKEN", "art_entity": "image.example_artwork"}
+```
+
+Optional entity overrides: `weather`, `weather_max`, `weather_text`, `weather_rain`, `heat_pump`. `scripts/ha_assets.py` writes them to `assets/ha-config.js` and adds the URL's origin as the manifest's only `<access>` entry, in the signed private widget only. `npm run dev` serves the same settings; `dev:public`, `--no-ha`, the browser checks and `export:public` keep the inert placeholder. The TV must trust the URL's certificate. The token is stored inside the private widget on the TV; create a dedicated HA token and revoke it if the widget leaves your control.
+
 ## Install and launch
 
 `npm run tv:install` uploads the signed widget with a unique build filename and calls Samsung's `vd_appinstall` command. It checks for `install completed` and confirms the app appears in the installed-app list. `sdb install` on this TV only uploaded the widget and did not install it.

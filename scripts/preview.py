@@ -5,6 +5,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 from font_assets import font_overlay
+from ha_assets import ha_overlay
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -27,6 +28,14 @@ class Preview(SimpleHTTPRequestHandler):
             self.send_header('Content-Length', str(len(content)))
             self.end_headers()
             return io.BytesIO(content)
+        if route == '/home/assets/ha-config.js' and self.server.include_ha:
+            content = ha_overlay().get('assets/ha-config.js')
+            if content:
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/javascript')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                return io.BytesIO(content)
         return super().send_head()
 
     def translate_path(self, path):
@@ -59,8 +68,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', type=int, default=4795)
     parser.add_argument('--public-fonts', action='store_true', help='Use only the fonts distributed with the source')
+    parser.add_argument('--no-ha', action='store_true', help='Do not serve the private Home Assistant settings')
     args = parser.parse_args()
     server = PreviewServer(('127.0.0.1', args.port), Preview)
     server.include_private_fonts = not args.public_fonts
+    # Public-font previews model a public checkout, so they never serve the private HA token either.
+    server.include_ha = not args.public_fonts and not args.no_ha
     print('CleanFrame preview: http://127.0.0.1:' + str(server.server_port) + '/home/', flush=True)
     server.serve_forever()

@@ -1,9 +1,6 @@
-"""Build and sign with the workspace-local official Tizen SDK (macOS)."""
+"""Build and sign with the workspace-local official Tizen SDK (macOS or Windows)."""
 from pathlib import Path
 import os
-import pty
-import select
-import signal
 import subprocess
 import time
 import xml.etree.ElementTree as XML
@@ -12,6 +9,42 @@ from font_assets import write_widget_archive
 
 ROOT = Path(__file__).resolve().parents[1]
 SDK = ROOT / '.local/tizen-sdk'
+PROFILE = 'Rhys'
+dist = ROOT / 'dist'
+
+
+def check_signed(output, signed):
+    if 'is created successfully' not in output:
+        print(output)
+        raise SystemExit('SDK did not confirm a signed package.')
+    with zipfile.ZipFile(signed) as package:
+        if not {'author-signature.xml', 'signature1.xml'}.issubset(package.namelist()):
+            raise SystemExit('Package is missing its signing files.')
+    target = dist / 'CleanFrame.wgt'
+    target.write_bytes(signed.read_bytes())
+    print('Signed widget created: ' + str(target))
+
+
+if os.name == 'nt':
+    # Windows: the Certificate Manager stores the profile passwords, so the SDK signs without prompts.
+    # sdk.info and the SDK's own profiles.xml are left as the installer and Certificate Manager wrote them.
+    cli = SDK / 'tools/ide/bin/tizen.bat'
+    if not cli.exists():
+        raise SystemExit('Local SDK missing. See docs/development.md.')
+    dist.mkdir(exist_ok=True)
+    unsigned = dist / 'CleanFrame-unsigned.wgt'
+    write_widget_archive(unsigned)
+    signed_dir = dist / 'signed'
+    signed_dir.mkdir(exist_ok=True)
+    result = subprocess.run(['cmd', '/c', str(cli), 'package', '-t', 'wgt', '-s', PROFILE, '-o', str(signed_dir), '--', str(unsigned)],
+                            stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=180)
+    check_signed(result.stdout + result.stderr, signed_dir / unsigned.name)
+    raise SystemExit(0)
+
+import pty
+import select
+import signal
+
 PRIVATE = ROOT / '.local/certificates/private'
 CLI = SDK / 'tools/ide/bin/tizen'
 password_file = PRIVATE / 'certificate-password.txt'
@@ -20,7 +53,6 @@ if not CLI.exists() or not password_file.exists():
 password = password_file.read_bytes().strip()
 if not password:
     raise SystemExit('Signing password is empty.')
-dist = ROOT / 'dist'
 dist.mkdir(exist_ok=True)
 data = SDK / 'data'
 data.mkdir(exist_ok=True)
@@ -42,7 +74,7 @@ unsigned = dist / 'CleanFrame-unsigned.wgt'
 write_widget_archive(unsigned)
 signed_dir = dist / 'signed'
 signed_dir.mkdir(exist_ok=True)
-command = [str(CLI), 'package', '-t', 'wgt', '-s', 'FrameHome', '-o', str(signed_dir), '--', str(unsigned)]
+command = [str(CLI), 'package', '-t', 'wgt', '-s', PROFILE, '-o', str(signed_dir), '--', str(unsigned)]
 pid, terminal = pty.fork()
 if pid == 0:
     os.execv(command[0], command)
@@ -75,13 +107,4 @@ finally:
     os.close(terminal)
 os.waitpid(pid, 0)
 redacted = output.replace(password, b'[redacted]').decode(errors='replace')
-if 'is created successfully' not in redacted:
-    print(redacted)
-    raise SystemExit('SDK did not confirm a signed package.')
-signed = signed_dir / unsigned.name
-with zipfile.ZipFile(signed) as package:
-    if not {'author-signature.xml', 'signature1.xml'}.issubset(package.namelist()):
-        raise SystemExit('Package is missing its signing files.')
-target = dist / 'CleanFrame.wgt'
-target.write_bytes(signed.read_bytes())
-print('Signed widget created: ' + str(target))
+check_signed(redacted, signed_dir / unsigned.name)

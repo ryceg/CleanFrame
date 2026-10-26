@@ -13,14 +13,14 @@ const CATALOG = IDS.map((id, i) => ({ id, name: NAMES[i], show: true, iconPath: 
   { id: EXTRA, name: UNSAFE_NAME, show: true, iconPath: '' },
   { id: SPOTIFY, name: 'Spotify', show: true, iconPath: '' },
   { id: '5b8c3eb16b.BeamCTVDev', name: 'HBO Max', show: true, iconPath: '' },
-  { id: 'nClrkHome1.FrameHome', name: 'CleanFrame', show: true },
+  { id: 'ix1Dqk0PzZ.GrayFrame', name: 'GrayFrame', show: true },
   { id: 'AbCdEf1234.worker', name: 'Background worker', show: true },
   { id: 'com.samsung.tv.cobalt-yt', name: 'YouTube', show: true }
 ]);
 const walls = JSON.parse(readFileSync(root + 'app/assets/wallpapers/SOURCES.json', 'utf8'));
 const out = root + '.local/qa/';
 mkdirSync(out, { recursive: true });
-const sourceFiles = ['app/main.js', 'app/device.js', 'app/index.html', 'app/style.css', 'app/config.xml', 'app/assets/wallpapers/SOURCES.json', 'app/assets/wallpapers/catalog.js', 'app/assets/adaptive-ink.js', 'app/assets/icons/metrics.js'];
+const sourceFiles = ['app/main.js', 'app/device.js', 'app/ha.js', 'app/index.html', 'app/style.css', 'app/config.xml', 'app/assets/wallpapers/SOURCES.json', 'app/assets/wallpapers/catalog.js', 'app/assets/adaptive-ink.js', 'app/assets/icons/metrics.js'];
 const hashes = () => Object.fromEntries(sourceFiles.map(f => [f, createHash('sha256').update(readFileSync(root + f)).digest('hex')]));
 const report = { scope: 'Production UI in Chromium; mock public Tizen API only; no TV contacted.', sourceBefore: hashes(), checks: [], failures: [], pageErrors: [], expectedNetworkFailures: [] };
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -42,7 +42,7 @@ async function run(name, fn) {
 async function closePage() { if (current) { current.__closing = true; await current.close(); current = null; } }
 
 // Production still calls its unmodified device.js adapter.
-function installHarness({ seed, legacy, mock, catalog, minuteMs, catalogFailure, noFontAPI, storageFailure }) {
+function installHarness({ seed, legacy, mock, catalog, minuteMs, catalogFailure, noFontAPI, storageFailure, ha }) {
   if (!sessionStorage.getItem('__cleanframe_seeded')) {
     if (seed !== undefined) localStorage.setItem('cleanframe.home.v1', typeof seed === 'string' ? seed : JSON.stringify(seed));
     if (legacy !== undefined) localStorage.setItem('cleanframe.shore.v1', typeof legacy === 'string' ? legacy : JSON.stringify(legacy));
@@ -63,6 +63,28 @@ function installHarness({ seed, legacy, mock, catalog, minuteMs, catalogFailure,
     document.dispatchEvent(new Event('visibilitychange'));
   };
   if (noFontAPI) Object.defineProperty(document, 'fonts', { configurable: true, value: undefined });
+  // A local Home Assistant stand-in: same WebSocket message shapes, no network.
+  if (ha) {
+    window.GrayFrameHA = { url: 'https://ha.test', token: 'qa-token', art_entity: 'image.art' };
+    window.__ha = { sent: [], sockets: [], fail: null, hold: false, held: null, subId: 0, initial: ha.initial };
+    const reply = (ws, o) => setTimeout(() => ws.readyState === 1 && ws.onmessage({ data: JSON.stringify(o) }), 0);
+    window.WebSocket = function (url) {
+      const ws = this; ws.url = url; ws.readyState = 0; window.__ha.sockets.push(ws);
+      ws.send = data => {
+        const m = JSON.parse(data), h = window.__ha; h.sent.push(m);
+        if (m.type === 'auth') reply(ws, { type: m.access_token === 'qa-token' ? 'auth_ok' : 'auth_invalid' });
+        else if (m.type === 'subscribe_entities') { h.subId = m.id; reply(ws, { id: m.id, type: 'result', success: true }); reply(ws, { id: m.id, type: 'event', event: { a: h.initial } }); }
+        else if (m.type === 'call_service') {
+          if (h.hold) h.held = m;
+          else reply(ws, h.fail ? { id: m.id, type: 'result', success: false, error: { code: 'qa', message: h.fail } } : { id: m.id, type: 'result', success: true });
+        }
+      };
+      ws.close = () => { ws.readyState = 3; setTimeout(() => ws.onclose && ws.onclose({}), 0); };
+      setTimeout(() => { ws.readyState = 1; ws.onmessage({ data: JSON.stringify({ type: 'auth_required' }) }); }, 0);
+    };
+    window.__haPush = event => { const h = window.__ha, ws = h.sockets[h.sockets.length - 1]; ws.onmessage({ data: JSON.stringify({ id: h.subId, type: 'event', event }) }); };
+    window.__haRelease = success => { const h = window.__ha, ws = h.sockets[h.sockets.length - 1], m = h.held; h.held = null; h.hold = false; reply(ws, success ? { id: m.id, type: 'result', success: true } : { id: m.id, type: 'result', success: false, error: { code: 'qa', message: 'QA refused' } }); };
+  }
   if (!mock) return;
   window.__tv = { catalog, catalogFailure: !!catalogFailure, launchFailure: false, holdCatalog: false, pending: [], calls: [], catalogCalls: 0 };
   window.tizen = {
@@ -100,6 +122,7 @@ async function page(options = {}) {
     if (expected.some(s => request.url().includes(s))) report.expectedNetworkFailures.push(failure);
     else if (failure.error !== 'net::ERR_ABORTED') report.pageErrors.push(failure);
   });
+  if (options.ha) await current.route('https://ha.test/**', route => route.fulfill({ path: root + 'app/' + walls[0].src }));
   await current.addInitScript(installHarness, { mock: true, catalog: CATALOG, minuteMs: 60000, seed: baseline(), ...options });
   await current.goto(preview.baseURL + '/home/');
   await ready();
@@ -849,6 +872,65 @@ try {
     check('Browser launch honestly requires TV', /TV/.test(await current.locator('#stage').innerText()));
     await nav('back'); await library();
     check('Browser All Apps has no installed fixtures', /TV/.test(await current.locator('#stage').innerText()) && !(await current.locator('[data-action^="apps.open."]').count()));
+  });
+  await run('Home Assistant widgets, heat pump and Art Mode background', async () => {
+    await page();
+    check('Without HA config the panel is absent', await current.locator('#haPanel').isHidden() && (await state()).ha === null);
+    await group('background');
+    check('Without HA config Art Mode is not offered', !(await call('actions')).includes('choice.bg.art'));
+    await closePage();
+    await page({ seed: baseline({ look: { bg: 'art' } }) });
+    check('Saved Art Mode without HA renders the dark flat background', await current.evaluate(() => document.getElementById('stage').classList.contains('bg-dark') && !document.getElementById('stage').classList.contains('has-art')));
+    await closePage();
+    const initial = {
+      'weather.hobart': { s: 'rainy', a: { temperature: 10.3 } }, 'sensor.hobart_temp_max_0': { s: '14' },
+      'sensor.hobart_short_text_0': { s: 'Possible shower.' }, 'sensor.hobart_rain_chance_0': { s: '80' },
+      'climate.living_room_heat_pump': { s: 'heat_cool', a: { current_temperature: 22.6, temperature: 23 } },
+      'image.art': { s: '2026-10-26T00:00:00', a: { entity_picture: '/api/image_proxy/image.art?token=one' } }
+    };
+    await page({ ha: { initial } });
+    await current.waitForFunction(() => ShoreQA.state().ha.status === 'online' && /Heat pump/.test(document.getElementById('haPanel').textContent));
+    const panel = await current.locator('#haPanel').innerText();
+    check('Weather shows today from HA', /10°/.test(panel) && /Possible shower\. · max 14° · 80% rain/.test(panel), panel);
+    check('Heat pump shows state, room temperature and setpoint', /On · 22\.5° → 23°/.test(panel), panel);
+    const subscribed = await current.evaluate(() => __ha.sent.find(m => m.type === 'subscribe_entities'));
+    check('Only the configured entities are subscribed', subscribed && subscribed.entity_ids.length === 6 && subscribed.entity_ids.includes('image.art'), subscribed);
+    await nav('up', 'left');
+    check('Left from Art Mode focuses the heat pump', (await call('where')).focusAction === 'ha.heat' && (await call('where')).focusCount === 1);
+    check('Focus alone sends no service call', !(await current.evaluate(() => __ha.sent.some(m => m.type === 'call_service'))));
+    await nav('right'); check('Right returns to Art Mode', (await state()).focusAction === 'util.art');
+    await nav('left', 'down'); check('Down from the heat pump returns to the selected app', (await call('where')).zone === 'apps');
+    await nav('up', 'left');
+    await current.evaluate(() => { __ha.hold = true; });
+    await nav('ok');
+    check('OK turns the heat pump off with climate.turn_off', await current.evaluate(() => { const m = __ha.sent.filter(x => x.type === 'call_service'); return m.length === 1 && m[0].domain === 'climate' && m[0].service === 'turn_off' && m[0].target.entity_id === 'climate.living_room_heat_pump'; }));
+    check('Pending toggle is shown, not a fake result', (await state()).ha.pending === 'off' && /Turning off…/.test(await current.locator('#haPanel').innerText()));
+    await nav('ok');
+    check('Repeated OK while pending sends nothing more', await current.evaluate(() => __ha.sent.filter(x => x.type === 'call_service').length === 1));
+    await current.evaluate(() => { __haRelease(true); __haPush({ c: { 'climate.living_room_heat_pump': { '+': { s: 'off' } } } }); });
+    await current.waitForFunction(() => /Off · 22\.5°/.test(document.getElementById('haPanel').textContent) && !ShoreQA.state().ha.pending);
+    check('HA state change updates the toggle', true);
+    await current.evaluate(() => { __ha.fail = 'Unit is offline'; });
+    await nav('ok');
+    await current.waitForFunction(() => ShoreQA.state().ha.note);
+    const failed = await current.locator('#haPanel').innerText();
+    check('Failure shows the real HA error and keeps the state', /Unit is offline/.test(failed) && /Off · 22\.5°/.test(failed) && (await state()).ha.pending === null, failed);
+    check('Turning on uses climate.turn_on', await current.evaluate(() => __ha.sent.filter(x => x.type === 'call_service').pop().service === 'turn_on'));
+    await group('background');
+    check('HA config offers Art Mode', (await call('actions')).includes('choice.bg.art'));
+    await choice('bg', 'art'); await ready(); await scene('home');
+    await current.waitForFunction(() => document.getElementById('stage').classList.contains('has-art'));
+    check('Art Mode shows the HA image over dark styling', await current.evaluate(() => { const st = document.getElementById('stage').classList, img = document.getElementById('haArt'); return st.contains('bg-art') && st.contains('bg-dark') && /image_proxy\/image\.art\?token=one/.test(img.src) && img.naturalWidth > 0; }));
+    await current.evaluate(() => __haPush({ c: { 'image.art': { '+': { s: '2026-10-26T01:00:00', a: { entity_picture: '/api/image_proxy/image.art?token=two' } } } } }));
+    await current.waitForFunction(() => /token=two/.test(document.getElementById('haArt').src));
+    check('A new artwork URL replaces the image', true);
+    await current.evaluate(() => __haPush({ c: { 'image.art': { '+': { s: 'unavailable' } } } }));
+    await current.waitForFunction(() => !document.getElementById('stage').classList.contains('has-art'));
+    check('Unavailable artwork falls back to the dark background', await current.evaluate(() => document.getElementById('stage').classList.contains('bg-dark') && !document.getElementById('haArt').getAttribute('src')));
+    await look({ layout: 'list' });
+    await nav('right', 'up');
+    check('List: Up from Art Mode focuses the heat pump', (await state()).focusAction === 'ha.heat');
+    await nav('down'); check('List: Down returns to Art Mode', (await state()).focusAction === 'util.art');
   });
   section = 'Run integrity';
   report.sourceAfter = hashes();

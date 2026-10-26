@@ -29,7 +29,7 @@ def forbidden(name):
             or path.suffix.lower() in private_suffixes
             or (path.name.startswith('PP') and path.suffix.lower() in font_suffixes)
             or path.name.startswith('.env.')
-            or path.name in {'certificate-password.txt', 'profiles.xml', '.env', 'session.json'})
+            or path.name in {'certificate-password.txt', 'profiles.xml', '.env', 'session.json', 'homeassistant.json'})
 
 
 public_fonts = {'app/assets/manrope.woff2': 'e310b55a7fd9677f5e3555e6c6c4d064fa1f1d24393f0ddbe217cea12a8c432f'}
@@ -56,7 +56,7 @@ for name in sorted(candidates):
     # Print filenames only, so a failing check does not leak a matched credential.
     patterns = [r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',
                 r'gh[pousr]_[A-Za-z0-9]{25,}', r'github_pat_[A-Za-z0-9_]{25,}',
-                r'AKIA[A-Z0-9]{16}']
+                r'AKIA[A-Z0-9]{16}', r'eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}']
     if any(re.search(pattern, content) for pattern in patterns):
         findings.append('Credential pattern: ' + name)
 
