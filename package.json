@@ -5,7 +5,8 @@
   "description": "A personal, uncluttered home interface for Samsung The Frame.",
   "scripts": {
     "dev": "python3 scripts/preview.py",
-    "check": "node --check app/main.js && node --check app/device.js && python3 scripts/check.py",
+    "check": "node --check app/main.js && node --check app/device.js && node scripts/check-compat.mjs && python3 scripts/check.py",
+    "check:compat": "node scripts/check-compat.mjs",
     "package": "python3 scripts/package.py",
     "tv:info": "python3 scripts/tv.py info",
     "tv:install": "python3 scripts/tv.py install",
@@ -16,7 +17,10 @@
     "check:public": "python3 scripts/check-public.py"
   },
   "devDependencies": {
-    "playwright": "1.64.1"
+    "@mdn/browser-compat-data": "8.1.7",
+    "acorn": "8.19.0",
+    "playwright": "1.64.1",
+    "postcss": "8.5.32"
   },
   "license": "MIT"
 }

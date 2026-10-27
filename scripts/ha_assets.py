@@ -11,7 +11,7 @@ import re
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / '.local/homeassistant.json'
-KEYS = ['art_entity', 'weather', 'weather_max', 'weather_text', 'weather_rain', 'heat_pump']
+KEYS = ['art_entity', 'weather', 'weather_max', 'weather_text', 'weather_rain', 'heat_pump', 'frame_player']
 
 
 def ha_config(root=ROOT):

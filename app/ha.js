@@ -8,14 +8,16 @@
     text: C && C.weather_text || 'sensor.hobart_short_text_0',
     rain: C && C.weather_rain || 'sensor.hobart_rain_chance_0',
     heat: C && C.heat_pump || 'climate.living_room_heat_pump',
-    art: C && C.art_entity || 'image.living_room_the_frame_current_artwork'
+    art: C && C.art_entity || 'image.living_room_the_frame_current_artwork',
+    // Service target only: not subscribed, so media-player chatter (volume, source) never re-renders Home.
+    frame: C && C.frame_player || 'media_player.the_frame'
   };
   var base = C ? String(C.url).replace(/\/+$/, '') : '';
   var states = {}, listeners = [], pending = {}, ws = null, nextId = 1, subId = 0, status = C ? 'connecting' : 'off', retry = 0, timer = 0, authFailed = false;
 
   function emit() { for (var i = 0; i < listeners.length; i++) { try { listeners[i](); } catch (e) { /* a listener error must not stop updates */ } } }
   function send(msg) { if (ws && ws.readyState === 1) { ws.send(JSON.stringify(msg)); return true; } return false; }
-  function ids() { return Object.keys(E).map(function (k) { return E[k]; }); }
+  function ids() { return Object.keys(E).filter(function (k) { return k !== 'frame'; }).map(function (k) { return E[k]; }); }
 
   function merge(target, source) { for (var k in source) if (Object.prototype.hasOwnProperty.call(source, k)) target[k] = source[k]; return target; }
   /* subscribe_entities sends compressed states: a = added/full, c = changes (+ added keys, - removed attribute keys), r = removed. */
@@ -68,12 +70,12 @@
     };
     ws.onerror = function () { /* onclose follows */ };
   }
-  function call(domain, service, entityId, done) {
+  function call(domain, service, entityId, done, wait) {
     var id = nextId++, finished = false, guard;
     function finish(err) { if (finished) return; finished = true; clearTimeout(guard); delete pending[id]; done(err); }
     if (!C) { done({ message: 'Home Assistant is not configured.' }); return; }
     pending[id] = finish;
-    guard = setTimeout(function () { finish({ message: 'Home Assistant did not respond. Please try again.' }); }, 8000);
+    guard = setTimeout(function () { finish({ message: 'Home Assistant did not respond. Please try again.' }); }, wait || 8000);
     if (!send({ id: id, type: 'call_service', domain: domain, service: service, target: { entity_id: entityId } })) finish({ message: 'Home Assistant is offline.' });
   }
 
@@ -92,6 +94,8 @@
     call: call,
     // entity_picture is a relative proxy URL with a rotating access token.
     picture: function (id) { var s = states[id], p = s && s.state !== 'unavailable' && s.attributes.entity_picture; return p ? (/^https?:/.test(p) ? p : base + p) : ''; },
+    // An image entity's state is its last-updated time, so it changes with the image but not with token rotation.
+    pictureKey: function (id) { var s = states[id]; return s ? String(s.state) + '|' + (s.attributes.content_id || '') : ''; },
     start: connect
   };
 }());

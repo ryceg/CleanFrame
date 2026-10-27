@@ -897,7 +897,7 @@
     return [{ id: 'samsung', title: '', items: [
       { action: 'samsung.home', label: 'Samsung Home', description: 'Open Samsung’s Home screen' },
       { action: 'samsung.settings', label: 'TV settings', description: 'Picture, sound and network settings' }
-    ] }];
+    ].concat(HA.configured ? [{ action: 'ha.newart', label: 'New random art', description: newArtText() }] : []) }];
   }
   function detailRows(t) {
     var rows = [[{ action: 'settings.back', label: t.group === 'rotation' ? 'Background' : 'Settings' }]];
@@ -941,6 +941,7 @@
     else if (item.axis) { patch[item.axis] = item.value; setLook(patch, { row: item.axis }); }
     else if (item.action === 'background.wallpaper') openWallpaper();
     else if (item.action === 'background.rotation') openAppearance('rotation');
+    else if (item.action === 'ha.newart') haNewArt();
     else if (item.action === 'samsung.home') perform('Samsung Home', FrameDevice.home);
     else if (item.action === 'samsung.settings') perform('TV settings', FrameDevice.settings);
   }
@@ -1101,7 +1102,7 @@
 
   /* ---------- Home Assistant ---------- */
   var HA = window.FrameHA || { configured: false }, haPanel = $('haPanel'), haArtImg = $('haArt');
-  var haPending = null, haNote = null, artReady = false, artUrl = '', artLoading = '';
+  var haPending = null, haNote = null, newArtPending = false, newArtNote = null, artReady = false, artUrl = '', artKey = '', artLoading = '', artFailed = '';
   function haNum(v) { var n = parseFloat(v); return isNaN(n) ? null : n; }
   function haDeg(v, half) { var n = haNum(v), r; if (n === null) return ''; r = half ? Math.round(n * 2) / 2 : Math.round(n); return (r % 1 ? r.toFixed(1) : String(r)) + '°'; }
   function haLive(s) { return !!s && s.state !== 'unavailable' && s.state !== 'unknown' && s.state !== null; }
@@ -1145,14 +1146,27 @@
       render();
     });
   }
-  /* Art Mode background: the image entity's rotating proxy URL, preloaded so a failed or slow image never blanks Home. */
+  function newArtText() { return newArtPending ? 'Asking Home Assistant for new art…' : newArtNote || 'A random museum artwork'; }
+  /* The integration downloads and uploads the artwork before replying, so allow it longer than a toggle. */
+  function haNewArt() {
+    if (newArtPending) return;
+    newArtPending = true; newArtNote = null;
+    HA.call('samsungtv_smart', 'new_artwork', HA.entities.frame, function (err) {
+      newArtPending = false;
+      newArtNote = err ? err.message : 'New art is on The Frame.';
+      render();
+    }, 90000);
+  }
+  /* Art Mode background: the image entity's rotating proxy URL, preloaded so a failed or slow image never blanks Home.
+     Downloads are keyed on the artwork, not the URL, so access-token rotation does not refetch the full image. */
   function updateArt() {
-    var url = HA.configured && S.c.bg === 'art' ? HA.picture(HA.entities.art) : '', im;
-    if (!url) { artLoading = ''; if (artReady || artUrl) { artReady = false; artUrl = ''; haArtImg.removeAttribute('src'); } return; }
-    if (url === artUrl || url === artLoading) return;
-    artLoading = url; im = new Image();
-    im.onload = function () { if (artLoading !== url) return; artLoading = ''; artUrl = url; haArtImg.src = url; artReady = true; render(); };
-    im.onerror = function () { if (artLoading !== url) return; artLoading = ''; if (!artUrl) { artReady = false; render(); } };
+    var url = HA.configured && S.c.bg === 'art' ? HA.picture(HA.entities.art) : '', key = url ? HA.pictureKey(HA.entities.art) : '', im;
+    if (!url) { artLoading = ''; artFailed = ''; if (artReady || artUrl) { artReady = false; artUrl = ''; artKey = ''; haArtImg.removeAttribute('src'); } return; }
+    // A failed artwork is retried only once its URL changes (the next token), never in a tight loop.
+    if (key === artKey || key === artLoading || url === artFailed) return;
+    artLoading = key; im = new Image();
+    im.onload = function () { if (artLoading !== key) return; artLoading = ''; artFailed = ''; artUrl = url; artKey = key; haArtImg.src = url; artReady = true; render(); };
+    im.onerror = function () { if (artLoading !== key) return; artLoading = ''; artFailed = url; if (!artUrl) { artReady = false; render(); } };
     im.src = url;
   }
 
@@ -1502,7 +1516,7 @@
         + command({ action: 'settings.retry', label: 'Try again' }, '<span>Try again</span>', 'setting-retry');
     }
     setHTML(appearanceStatus, status);
-    hint = selected.disabled ? '' : selected.action === 'settings.back' ? 'Return to ' + (t.group === 'rotation' ? 'Background' : 'Settings') : selected.action === 'settings.retry' ? 'Retry this change' : selected.axis ? 'Apply selected setting' : selected.action === 'background.wallpaper' ? 'Choose a wallpaper' : selected.action === 'background.rotation' ? 'Choose a rotation interval' : 'Open on the TV';
+    hint = selected.disabled ? '' : selected.action === 'settings.back' ? 'Return to ' + (t.group === 'rotation' ? 'Background' : 'Settings') : selected.action === 'settings.retry' ? 'Retry this change' : selected.axis ? 'Apply selected setting' : selected.action === 'background.wallpaper' ? 'Choose a wallpaper' : selected.action === 'background.rotation' ? 'Choose a rotation interval' : selected.action === 'ha.newart' ? 'Ask Home Assistant for new art' : 'Open on the TV';
     setHTML(appearanceDesc, hint ? '<span class="remote-key">OK</span><span>' + esc(hint) + '</span>' : '');
   }
   function renderWallpaper(t) {
@@ -1946,7 +1960,7 @@
     out.wallpaperPicker = t.id === 'wallpaper' ? { candidate: WALLS[t.i].id, applied: S.c.wall, shown: S.wallShown, pending: t.previewDue || S.wallPending,
       queuedApplying: !!t.applyPending, applyPending: t.applyPending, failed: t.failedId, zone: t.f.zone, top: t.top, visible: WALL_VISIBLE, backdrop: IMG.bg.src } : null;
     out.undo = S.undo.map(function (u) { return u.label; }); out.storageOk = storageOk;
-    out.ha = HA.configured ? { status: HA.status(), pending: haPending, note: haNote, art: artReady ? artUrl : '' } : null;
+    out.ha = HA.configured ? { status: HA.status(), pending: haPending, note: haNote, newArt: { pending: newArtPending, note: newArtNote }, art: artReady ? artUrl : '' } : null;
     return JSON.parse(JSON.stringify(out));
   };
   QA.where = function () {

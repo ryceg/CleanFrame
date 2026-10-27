@@ -18,7 +18,8 @@ GrayFrame shows Home Assistant items only when a private build carries `.local/h
 - Dock: Left from Art Mode (the first top-right control) focuses Heat pump. Right returns to Art Mode; Down or Back returns to the selected app.
 - List: the items sit at the top right under the clock. Up from Art Mode focuses Heat pump; Down returns to Art Mode; Left or Back returns to the selected app.
 - Focus never acts. OK sends `climate.turn_off` or `climate.turn_on`. The control shows Turning on…/Turning off… until Home Assistant answers (8 s limit); repeated OK is ignored meanwhile. A refusal, timeout or lost connection shows Home Assistant's message and the last real state; no success is simulated.
-- Background → Art Mode (offered only with HA) shows the configured HA image entity over the Dark styling with a static legibility scrim, and follows the entity's picture as it changes. If the entity is unavailable or HA is unreachable, Home shows the Dark background. There are no pre-rendered materials or live blur for this image.
+- Background → Art Mode (offered only with HA) shows the configured HA image entity over the Dark styling with a static legibility scrim, and follows the entity's picture as it changes. If the entity is unavailable or HA is unreachable, Home shows the Dark background. There are no pre-rendered materials or live blur for this image. It downloads only when the artwork changes (the entity's state or `content_id`), not when HA rotates the picture's access token.
+- Settings → Samsung → New random art (offered only with HA) calls `samsungtv_smart.new_artwork` on The Frame's media player. The row's description shows the pending request, then HA's real result or error; OK while pending sends nothing more. Art Mode picks the new image up through the artwork entity.
 - The connection uses the HA WebSocket API, reconnects with backoff and closes while the launcher is hidden.
 
 ## Settings and appearance
