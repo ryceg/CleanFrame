@@ -19,7 +19,7 @@ GrayFrame shows Home Assistant items only when a private build carries `.local/h
 - List: the items sit at the top right under the clock. Up from Art Mode focuses Heat pump; Down returns to Art Mode; Left or Back returns to the selected app.
 - Focus never acts. OK sends `climate.turn_off` or `climate.turn_on`. The control shows Turning on…/Turning off… until Home Assistant answers (8 s limit); repeated OK is ignored meanwhile. A refusal, timeout or lost connection shows Home Assistant's message and the last real state; no success is simulated.
 - Background → Art Mode (offered only with HA) shows the configured HA image entity over the Dark styling with a static legibility scrim, and follows the entity's picture as it changes. If the entity is unavailable or HA is unreachable, Home shows the Dark background. There are no pre-rendered materials or live blur for this image. It downloads only when the artwork changes (the entity's state or `content_id`), not when HA rotates the picture's access token.
-- Settings → Samsung → New random art (offered only with HA) calls `samsungtv_smart.new_artwork` on The Frame's media player. The row's description shows the pending request, then HA's real result or error; OK while pending sends nothing more. Art Mode picks the new image up through the artwork entity.
+- Settings → Samsung → New random art, also under Background when Art Mode is selected (offered only with HA), calls `samsungtv_smart.new_artwork` on The Frame's media player. The row's description shows the pending request, then HA's real result or error; OK while pending sends nothing more. Art Mode picks the new image up through the artwork entity.
 - The connection uses the HA WebSocket API, reconnects with backoff and closes while the launcher is hidden.
 
 ## Settings and appearance
@@ -28,7 +28,7 @@ Settings opens a grouped overview: Background, Layout, Typography, Focus, Apps o
 
 | Group | Choices |
 | --- | --- |
-| Background | Photo, Light, Dark; Wallpaper and Rotation when Photo is active |
+| Background | Photo, Light, Dark (Photo and Art Mode when HA is configured); Wallpaper and Rotation only with Photo; New random art only with Art Mode |
 | Layout | List or Dock; independent Text, Icons or Both choices for apps and Home controls |
 | Typography | Manrope, Neue Montreal, Mori, Pangram Sans, Geist and Newsreader, when available |
 | Focus | Type or Glass; Soft, Frost or Clear tint material |
@@ -37,7 +37,7 @@ Settings opens a grouped overview: Background, Layout, Typography, Focus, Apps o
 
 Up/Down moves between rows. Left/Right moves between choices in a horizontal row. Focus alone changes neither the preview nor saved preferences in these appearance groups. Wallpaper has its own temporary photo preview, described below. OK applies the focused value. A checkmark identifies the applied value; the filled plate identifies remote focus. Applying the current value does not write again.
 
-Material applies to a photographic Dock, or Glass focus on a photographic List. Inactive material choices remain visible with an explanation and are skipped during navigation. Their stored value is retained. Wallpaper and rotation are also inactive on flat backgrounds.
+Material applies to a photographic Dock, or Glass focus on a photographic List. Inactive material choices remain visible with an explanation and are skipped during navigation. Their stored value is retained. Wallpaper and Rotation rows are hidden on non-photo backgrounds; their stored values are retained and return with Photo.
 
 A font or photo change applies only after its resources are ready and storage succeeds. A load or storage failure keeps the previous appearance and checkmark, with a Try again action. Back cancels a pending change, leaves the group and keeps completed changes. Late load callbacks cannot apply a cancelled choice. There is no Save button. Returning to a group restores its last choice focus; returning to Settings restores its category focus. Rotation is nested within Background, and Back returns to its Rotation row.
 

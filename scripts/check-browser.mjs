@@ -514,20 +514,16 @@ try {
     const materials = (await radios()).filter(r => r.action.startsWith('choice.material.'));
     check('Applicable Material restores the remembered selection', materials.every(r => !r.disabled) && materials.some(r => r.action === 'choice.material.tint' && r.checked === 'true'));
   });
-  await run('Settings inactive photo tools retain wallpaper preferences', async () => {
+  await run('Settings hides photo tools for flat backgrounds and keeps wallpaper preferences', async () => {
     await page();
     for (const bg of ['dark', 'light']) {
       await look({ bg }); await group('background'); const before = await settingsSnapshot();
-      for (const action of ['background.wallpaper', 'background.rotation']) {
-        check(bg + ' marks ' + action + ' inactive', await current.locator('[data-action="' + action + '"]').getAttribute('aria-disabled') === 'true');
-        const focusBefore = (await state()).focusAction;
-        await current.locator('[data-action="' + action + '"]').click({ force: true });
-        check('Inactive ' + action + ' ignores pointer focus and keeps preferences', same(await settingsSnapshot(), before) && (await state()).settingsGroup === 'background' && (await state()).focusAction === focusBefore);
-      }
+      for (const action of ['background.wallpaper', 'background.rotation'])
+        check(bg + ' hides ' + action, await current.locator('[data-action="' + action + '"]').count() === 0 && !(await call('actions')).includes(action));
       await walkEnabledChoices();
-      check(bg + ' remote navigation skips inactive photo tools', same(await settingsSnapshot(), before));
-      const reason = await current.locator('.setting-reason:visible').allTextContents();
-      check(bg + ' explains how to enable photo tools', reason.some(text => /photo/i.test(text) && /wallpaper|rotation/i.test(text)), reason);
+      check(bg + ' remote navigation keeps preferences', same(await settingsSnapshot(), before));
+      await choice('bg', 'photo'); await ready();
+      check(bg + ' to Photo shows the remembered wallpaper and rotation again', (await call('actions')).includes('background.wallpaper') && (await call('actions')).includes('background.rotation') && (await state()).look.wall === before.committed.wall);
     }
   });
   await run('Settings normalises remembered inactive focus', async () => {
@@ -932,8 +928,18 @@ try {
     await current.waitForFunction(() => ShoreQA.state().ha.newArt.note);
     check('New random art failure shows the HA error', /QA refused/.test(await current.locator('#appearanceRows').innerText()) && !(await state()).ha.newArt.pending);
     await group('background');
-    check('HA config offers Art Mode', (await call('actions')).includes('choice.bg.art'));
-    await choice('bg', 'art'); await ready(); await scene('home');
+    const haBg = (await call('actions')).filter(a => a.startsWith('choice.bg.'));
+    check('HA Background offers only Photo and Art Mode', same(haBg.sort(), ['choice.bg.art', 'choice.bg.photo']), haBg);
+    check('Photo background shows wallpaper and hides New random art', (await call('actions')).includes('background.wallpaper') && !(await call('actions')).includes('ha.newart'));
+    await choice('bg', 'art'); await ready();
+    const artActions = await call('actions');
+    check('Art Mode background hides wallpaper and rotation and offers New random art', !artActions.includes('background.wallpaper') && !artActions.includes('background.rotation') && artActions.includes('ha.newart'), artActions);
+    const artFit = await current.evaluate(() => { const stage = document.getElementById('stage').getBoundingClientRect(); return [...document.querySelectorAll('#appearanceRows .setting-choice')].every(e => e.getBoundingClientRect().bottom <= stage.bottom + 1); });
+    check('Art Mode Background rows fit on screen', artFit);
+    await current.waitForFunction(() => document.getElementById('stage').classList.contains('has-art'));
+    check('Art Mode swatch shows the loaded artwork, not the wallpaper', /image_proxy/.test(await current.locator('[data-action="choice.bg.art"] img').getAttribute('src')));
+    await current.screenshot({ path: root + '/.local/qa/ha-background-art.png' });
+    await scene('home');
     await current.waitForFunction(() => document.getElementById('stage').classList.contains('has-art'));
     check('Art Mode shows the HA image over dark styling', await current.evaluate(() => { const st = document.getElementById('stage').classList, img = document.getElementById('haArt'); return st.contains('bg-art') && st.contains('bg-dark') && /image_proxy\/image\.art\?token=one/.test(img.src) && img.naturalWidth > 0; }));
     const proxied = () => current.evaluate(() => performance.getEntriesByType('resource').filter(r => /image_proxy/.test(r.name)).length);

@@ -876,11 +876,13 @@
   function detailSections(t) {
     var flat = S.c.bg !== 'photo', inactive = !materialApplies();
     function options(axis, values, disabled) { return values.map(function (value) { return choice(axis, value, disabled); }); }
+    // With HA, Art Mode replaces the flat Light/Dark backgrounds. Rows that do not apply to the chosen type are hidden.
     if (t.group === 'background') return [
-      { id: 'bg', title: 'Background type', items: options('bg', ['photo', 'light', 'dark'].concat(HA.configured ? ['art'] : [])) },
-      { id: 'wall', title: 'Wallpaper', items: [{ action: 'background.wallpaper', label: wall(S.c.wall).name, thumbnail: true, disabled: flat }] },
-      { id: 'rotation', title: 'Rotation', items: [{ action: 'background.rotation', label: mode().name, disabled: flat }], reason: flat ? 'Choose Photo to use wallpaper and rotation.' : '' }
-    ];
+      { id: 'bg', title: 'Background type', items: options('bg', HA.configured ? ['photo', 'art'] : ['photo', 'light', 'dark']) }
+    ].concat(flat ? [] : [
+      { id: 'wall', title: 'Wallpaper', items: [{ action: 'background.wallpaper', label: wall(S.c.wall).name, thumbnail: true }] },
+      { id: 'rotation', title: 'Rotation', items: [{ action: 'background.rotation', label: mode().name }] }
+    ]).concat(HA.configured && S.c.bg === 'art' ? [{ id: 'frameart', title: 'Artwork', items: [newArtItem()] }] : []);
     if (t.group === 'layout') return [
       { id: 'layout', title: 'Layout', horizontal: true, items: options('layout', ['list', 'dock']) },
       { id: 'apps', title: 'App display', horizontal: true, items: options('apps', ['text', 'icons', 'both']) },
@@ -897,7 +899,7 @@
     return [{ id: 'samsung', title: '', items: [
       { action: 'samsung.home', label: 'Samsung Home', description: 'Open Samsung’s Home screen' },
       { action: 'samsung.settings', label: 'TV settings', description: 'Picture, sound and network settings' }
-    ].concat(HA.configured ? [{ action: 'ha.newart', label: 'New random art', description: newArtText() }] : []) }];
+    ].concat(HA.configured ? [newArtItem()] : []) }];
   }
   function detailRows(t) {
     var rows = [[{ action: 'settings.back', label: t.group === 'rotation' ? 'Background' : 'Settings' }]];
@@ -1146,6 +1148,7 @@
       render();
     });
   }
+  function newArtItem() { return { action: 'ha.newart', label: 'New random art', description: newArtText() }; }
   function newArtText() { return newArtPending ? 'Asking Home Assistant for new art…' : newArtNote || 'A random museum artwork'; }
   /* The integration downloads and uploads the artwork before replying, so allow it longer than a toggle. */
   function haNewArt() {
@@ -1500,9 +1503,10 @@
         + '<div class="setting-options"' + (section.items[0].axis ? ' role="radiogroup" aria-label="' + esc(section.title || LOOK_NAMES[section.id] || DETAIL_NAMES[t.group]) + '"' : '') + '>'
         + section.items.map(function (item) {
           var swatch = item.axis === 'bg', body = '';
-          if (swatch || item.thumbnail) body += item.value === 'light' || item.value === 'dark'
-            ? '<span class="setting-swatch swatch-' + item.value + '" aria-hidden="true"></span>'
-            : '<img class="setting-swatch" src="' + WP + S.c.wall + '-thumb.jpg" alt="">';
+          // Art Mode previews the loaded artwork (already decoded, so no extra download) or a dark swatch until it loads.
+          if (swatch || item.thumbnail) body += item.value === 'light' || item.value === 'dark' || (item.value === 'art' && !artReady)
+            ? '<span class="setting-swatch swatch-' + (item.value === 'art' ? 'dark' : item.value) + '" aria-hidden="true"></span>'
+            : '<img class="setting-swatch" src="' + (item.value === 'art' ? esc(artUrl) : WP + S.c.wall + '-thumb.jpg') + '" alt="">';
           body += '<span class="setting-copy"><span class="setting-name">' + esc(item.label) + '</span>'
             + (item.description ? '<span class="setting-description">' + esc(item.description) + '</span>' : '') + '</span>';
           if (!item.axis) body += icon('right', 'setting-forward');
