@@ -16,7 +16,8 @@
     'MjdLQbVh6K.Dropout': 'dropout', 'MoonLightS.MoonlightWasm': 'moonlight', '73iTZRTc34.Stan': 'stan', 'as6cYRgkPy.Binge': 'binge',
     'AtbFvatetY.FoxtelTizenApp': 'foxtel', 'eYuOiOLYQX.KayoSports': 'kayo', 'rJyOSqC6Up.PPlusIntl': 'paramountplus',
     'Ne2ZsPWdKl.9NOW': '9now', 'icp4AvUPiA.7plus': '7plus', 'KaLitts8bq.tenplaySamsungTizen': '10play',
-    'org.tizen.browser': 'internet', 'w0wZu3xkQq.GeForceNOW': 'geforcenow', 'GHI3a0zMSx.XboxGamePass': 'xbox'};
+    'org.tizen.browser': 'internet', 'w0wZu3xkQq.GeForceNOW': 'geforcenow', 'GHI3a0zMSx.XboxGamePass': 'xbox',
+    'tCyZuSsCVw.Britbox': 'britbox'};
   var INTERNAL = ['adplatform.ADPlayer', 'WykOS4t4F0.cmsWebApp', '25emanual3.emanual',
     'ZODRT12q2l.WebAccountExtension', 'ByJlgt0XeD.CastSettingsApp', 'tv6pbVMQFF.PrivacyChoices'];
   var SELF = 'ix1Dqk0PzZ.GrayFrame';

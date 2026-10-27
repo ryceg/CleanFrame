@@ -950,6 +950,10 @@ try {
     await current.evaluate(() => __haPush({ c: { 'image.art': { '+': { s: '2026-10-26T01:00:00', a: { entity_picture: '/api/image_proxy/image.art?token=two' } } } } }));
     await current.waitForFunction(() => /token=two/.test(document.getElementById('haArt').src));
     check('A new artwork URL replaces the image', true);
+    // HA keeps the same proxy URL for a new artwork until the token rotates; the image must still change.
+    await current.evaluate(() => __haPush({ c: { 'image.art': { '+': { s: '2026-10-26T02:00:00', a: { content_id: 'MY_F0157' } } } } }));
+    await current.waitForFunction(() => /token=two&v=2026-10-26T02/.test(document.getElementById('haArt').src));
+    check('A new artwork with an unrotated token replaces the image', true);
     await current.evaluate(() => __haPush({ c: { 'image.art': { '+': { s: 'unavailable' } } } }));
     await current.waitForFunction(() => !document.getElementById('stage').classList.contains('has-art'));
     check('Unavailable artwork falls back to the dark background', await current.evaluate(() => document.getElementById('stage').classList.contains('bg-dark') && !document.getElementById('haArt').getAttribute('src')));

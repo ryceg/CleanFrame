@@ -88,5 +88,11 @@
     "source": "https://raw.githubusercontent.com/elax46/custom-brand-icons/a53cabf49bf439023a8f33585af30d783bffe51b/icon-svg/xbox.svg",
     "licence": "MIT",
     "note": "Shape unchanged; recoloured white (source fill #44739e)."
+  },
+  {
+    "icon": "britbox",
+    "source": "https://raw.githubusercontent.com/elax46/custom-brand-icons/72731666e020c9fa7300ed08b1031f191e077ba3/icon-svg/bbc.svg",
+    "licence": "MIT",
+    "note": "BBC mark for BritBox by BBC; shape unchanged; recoloured white (source fill #44739e)."
   }
 ]

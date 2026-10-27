@@ -46,6 +46,6 @@ for wall in walls:
     assert (app / ('assets/wallpapers/' + wall_id + '-panel.jpg')).is_file(), 'Missing panel backdrop: ' + wall_id
 for icon in ['stremio', 'netflix', 'disneyplus', 'youtube', 'appletv', 'primevideo', 'abciview', 'sbs', 'applemusic', 'art', 'apps', 'settings',
              'hbomax', 'spotify', 'tubi', 'dropout', 'moonlight', 'stan', 'binge', 'foxtel', 'kayo', 'paramountplus',
-             '9now', '7plus', '10play', 'internet', 'geforcenow', 'xbox']:
+             '9now', '7plus', '10play', 'internet', 'geforcenow', 'xbox', 'britbox']:
     assert (app / ('assets/icons/' + icon + '.svg')).is_file(), 'Missing icon: ' + icon
 print('Widget identity, version and bundled resources are valid.')

@@ -27,10 +27,10 @@
   var PRIMARY = PRIMARY_APPS.map(function (a) { return a.id; }), APPS = PRIMARY_APPS.slice(), ALPHA = [];
   // Bundled marks for installed apps outside PRIMARY; device.js maps app IDs to these.
   var EXTRA_MARKS = ['hbomax', 'spotify', 'tubi', 'dropout', 'moonlight', 'stan', 'binge', 'foxtel', 'kayo', 'paramountplus',
-    '9now', '7plus', '10play', 'internet', 'geforcenow', 'xbox'];
+    '9now', '7plus', '10play', 'internet', 'geforcenow', 'xbox', 'britbox'];
   // First-run Home order. Strings are PRIMARY ids; objects are installed apps outside PRIMARY.
   var DEFAULT_HOME = ['youtube', 'abciview', 'sbs', 'appletv', { id: '5b8c3eb16b.BeamCTVDev', name: 'HBO Max', brand: 'hbomax' },
-    'disneyplus', 'primevideo', 'netflix', { id: 'tCyZuSsCVw.Britbox', name: 'BritBox by BBC' }];
+    'disneyplus', 'primevideo', 'netflix', { id: 'tCyZuSsCVw.Britbox', name: 'BritBox by BBC', brand: 'britbox' }];
   var WALLS = window.CleanFrameWallpapers || [{ id: 'misty', name: 'Misty coast', tone: 'light', ut: { tr: 'mist', br: 'mist' }, frostVeil: .20 }];
   var ADAPTIVE_INK = window.CleanFrameAdaptiveInk || {};
   WALLS.forEach(function (w) { w.ut = w.ut || { tr: 'light', br: 'light' }; w.frostVeil = w.frostVeil || .12; });
@@ -1165,6 +1165,8 @@
   function updateArt() {
     var url = HA.configured && S.c.bg === 'art' ? HA.picture(HA.entities.art) : '', key = url ? HA.pictureKey(HA.entities.art) : '', im;
     if (!url) { artLoading = ''; artFailed = ''; if (artReady || artUrl) { artReady = false; artUrl = ''; artKey = ''; haArtImg.removeAttribute('src'); } return; }
+    // The proxy URL is unchanged by a new artwork until the token rotates, and it sends no cache headers, so key it per artwork.
+    url += (url.indexOf('?') < 0 ? '?' : '&') + 'v=' + encodeURIComponent(key);
     // A failed artwork is retried only once its URL changes (the next token), never in a tight loop.
     if (key === artKey || key === artLoading || url === artFailed) return;
     artLoading = key; im = new Image();
